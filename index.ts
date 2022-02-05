@@ -1,4 +1,4 @@
-import {generateFromSource} from "./src/Transform";
+import {evaluateMapping} from "./src/evaluateMapping";
 import {Version, VersionResolver} from "./src/Version";
 import {DefaultResolver} from "./src/DefaultResolver";
 import {PointerMap} from "./src/PointerMap";
@@ -24,7 +24,7 @@ export class VersionParser<TARGET, V extends Version = Version> {
         this.options.versionMapper(mapper);
     }
 
-    public async transform<SRC>(o: SRC, versionResolver?: VersionResolver<V, SRC>): Promise<TARGET> {
+    public async process<SRC>(o: SRC, versionResolver?: VersionResolver<V, SRC>): Promise<TARGET> {
         const vResolver: VersionResolver<V> =
             versionResolver ?? this.options.versionResolver;
 
@@ -39,6 +39,6 @@ export class VersionParser<TARGET, V extends Version = Version> {
         if (!pointerMap)
             throw `version ${version} is not supported`;
 
-        return generateFromSource(o, pointerMap, this.options.defaultValueResolver);
+        return evaluateMapping(o, pointerMap, this.options.defaultValueResolver);
     }
 }

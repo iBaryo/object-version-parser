@@ -1,11 +1,11 @@
-import {isFieldMap, PointerMap, srcPointer} from "./PointerMap";
+import {isFieldMap, PointerMap, mappingConfig, FieldMap} from "./PointerMap";
 import {addToPointer, JSONPointer, PointerFor} from "./JSONPointer";
 import {resolveDefault} from "./DefaultResolver";
 import * as JsonPointer from "json-pointer";
 
-export async function generateFromSource<TARGET, SRC>(
+export async function evaluateMapping<TARGET, SRC>(
     src: SRC,
-    pointers: PointerMap<TARGET, SRC>,
+    pointers: PointerMap<TARGET, Required<SRC>>,
     globalDefaultResolver?: (curPointer) => any,
     curPointer: JSONPointer = '/'): Promise<TARGET> {
 
@@ -16,8 +16,8 @@ export async function generateFromSource<TARGET, SRC>(
         if (typeof pointers == 'string') {
             srcPtr = pointers;
         } else {
-            srcPtr = pointers[srcPointer];
-            defVal = pointers.default;
+            srcPtr = pointers[mappingConfig].srcPointer as any; // TODO: fix
+            defVal = pointers[mappingConfig].default;
         }
         if (JsonPointer.has(src, srcPtr)) {
             return JsonPointer.get(src, srcPtr);
@@ -25,26 +25,29 @@ export async function generateFromSource<TARGET, SRC>(
             return resolveDefault(defVal, curPointer, globalDefaultResolver);
         }
     } else if (pointers instanceof Array) {
-        return Promise.all(pointers.map(
+        return (await Promise.all(pointers.map(
             (pointer, i) =>
-                generateFromSource(
+                evaluateMapping(
                     src,
                     pointer,
                     globalDefaultResolver,
                     addToPointer(curPointer, i.toString())
-                ))) as unknown as TARGET;
+                )))) as unknown as TARGET;
 
     } else if (typeof pointers == 'object') {
-        const res = {} as TARGET;
-        for (const [k, pointer] of Object.entries(pointers)) {
-            res[k] =
-                await generateFromSource(
-                    src,
-                    pointer as PointerMap<TARGET[keyof TARGET], SRC>,
-                    globalDefaultResolver,
-                    addToPointer(curPointer, k));
-        }
-        return res;
+        return Object.fromEntries(
+            await Promise.all(
+                // TODO: fix any
+                Object.entries<any>(pointers).map(async ([k, pointer]) => [
+                    k,
+                    await evaluateMapping(
+                        src,
+                        pointer,
+                        globalDefaultResolver,
+                        addToPointer(curPointer, k))
+                ])
+            )
+        );
     } else { // number, boolean, func
         /// todo: ignore or throw?
     }
