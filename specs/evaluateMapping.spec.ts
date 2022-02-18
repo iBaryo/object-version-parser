@@ -74,30 +74,67 @@ describe('different types', function () {
 
     });
     it('should fallback to default if path does not exist', function () {
-        
+
     });
 });
 
 describe('defaults', function () {
-    it('should fallback to undefined if default does not exist', function () {
+    interface Target {
+        target: string;
+    }
+    interface Source {
+        doesNotExist?: string;
+    }
+
+    it('should fallback to undefined if default does not exist', async function () {
+        expect(
+            await evaluateMapping<Target, Source>(
+                {},
+                {target: '/doesNotExist'}).then(result => result.target)
+        ).toBeUndefined();
+    });
+
+    it('should resolve to default value', async function () {
+        expect(
+            await evaluateMapping<Target, Source>(
+                {},
+                {target: {
+                    [mappingConfig]: {
+                        srcPointer: '/doesNotExist',
+                        default: '42'
+                    }
+                    }}).then(result => result.target)
+        ).toBe('42');
 
     });
-    it('should resolve to default value', function () {
-        
+    it('should async resolve to value', async function () {
+        expect(
+            await evaluateMapping<Target, Source>(
+                {},
+                {target: {
+                        [mappingConfig]: {
+                            srcPointer: '/doesNotExist',
+                            default: async () => '42'
+                        }
+                    }}).then(result => result.target)
+        ).toBe('42');
     });
-    it('should resolve to async value', function () {
+    xit('should resolve to target array of resolvers', function () {
 
     });
-    it('should resolve to target array of resolvers', function () {
-
-    });
-    it('should resolve to the target object with resolvers', function () {
+    xit('should resolve to the target object with resolvers', function () {
 
     });
 });
 
 describe('object nesting', function () {
-    it('should map at root', function () {
+    it('should map primitive at root', function () {
+
+    });
+    it('should map array at root', function () {
+
+    });
+    it('should map at object root', function () {
 
     });
     it('should map at object nesting', function () {
@@ -120,27 +157,42 @@ describe('array entry mapping', function () {
     });
 });
 
-describe('multi source', function () {
-
-});
-
+// describe('multi source', function () {
+//
+// });
+//
 describe('normalized objects', function () {
     describe('KVPs', function () {
-        const example = [
+        type KVP<T, K extends keyof T> = { key: K; value: T[K];  }
+
+        interface Target {
+            firstName: string;
+            lastName: string;
+            age: number;
+        }
+
+        type Source = Array<KVP<Target, keyof Target>>;
+
+        const example: Source = [
             {key: 'firstName', value: 'Sassi'},
             {key: 'lastName', value: 'Keshet'},
             {key: 'age', value: 24}
         ];
 
-        describe('explode to', function () {
+        it('should explode to', function () {
+            evaluateMapping<Target, Source>(example, {
+                [mappingConfig]: {
+                    srcPointer: '/',
 
+                }
+            })
         });
-        describe('reduce from', function () {
+        it('should reduce from', function () {
 
         });
     });
 
-    describe('external columns', function () {
+    xdescribe('external columns', function () {
         const example = {
             columns: ['firstName', 'lastName', 'age'],
             customers: [

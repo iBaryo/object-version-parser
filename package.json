@@ -1,6 +1,9 @@
 {
   "name": "object-version-parser",
   "version": "1.0.0",
+  "scripts": {
+    "test": "tsc && jasmine specs/*.spec.js"
+  },
   "devDependencies": {
     "jasmine": "^4.0.2",
     "ts-node": "^10.4.0",

@@ -28,14 +28,30 @@ type SourceConfigBase<TARGET, SRC> = {
         : object
     );
 
-type SingleSourceConfig<TARGET, SRC, P extends PointerFor<SRC> = PointerFor<SRC>> =
+type SingleSourceConfig<TARGET, SRC, P extends PointerFor<SRC> = PointerFor<SRC>, PVAL extends PointerValue<SRC, P> = PointerValue<SRC, P>> =
     SourceConfigBase<TARGET, SRC> & { srcPointer: P; }
+    & (PVAL extends Array<infer S_ENTRY>
+    ? TARGET extends Array<infer T_ENTRY>
+        ? { entryMap?: PointerMap<T_ENTRY, S_ENTRY> }   // array to array
+        : TARGET extends object
+            ? {                     // array to object
+                reducer: S_ENTRY extends object ? {         // object-array [kvps] to object
+                        keyPointer: PointerFor<S_ENTRY>,
+                        valuePointer: PointerFor<S_ENTRY>
+                    }
+                    : Reducer<S_ENTRY[], TARGET>            // primitive-array to object // TODO: what about array-arrays?
+            }
+            : {} // array to primitive
+    : {} // object|primitive to any
+    );
 
-type MultiSourceConfig<TARGET, SRC, P extends PointerFor<SRC> = PointerFor<SRC>> =
-    SourceConfigBase<TARGET, SRC> & {
-    srcPointer: P[];
-    reducer: Reducer<PointerValue<SRC, P>[], TARGET>;
-}
+// type MultiSourceConfig<TARGET, SRC, P extends PointerFor<SRC> = PointerFor<SRC>, PVAL extends PointerValue<SRC, P> = PointerValue<SRC, P>> =
+//     SourceConfigBase<TARGET, SRC> & {
+//     srcPointer: P[];
+//     reducer: Reducer<PVAL[], TARGET>;
+// }
 
 export type SourceConfig<TARGET, SRC, P extends PointerFor<SRC> = PointerFor<SRC>> =
-    SingleSourceConfig<TARGET, SRC, P> | MultiSourceConfig<TARGET, SRC, P>;
+    SingleSourceConfig<TARGET, SRC, P>
+    // | MultiSourceConfig<TARGET, SRC, P>
+    ;
