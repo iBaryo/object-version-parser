@@ -19,7 +19,11 @@ export async function evaluateMapping<TARGET, SRC>(
             srcPtr = pointers[mappingConfig].srcPointer as any; // TODO: fix
             defVal = pointers[mappingConfig].default;
         }
-        if (JsonPointer.has(src, srcPtr)) {
+
+        if (srcPtr == '/' && src) {
+            return src as unknown as TARGET;
+        }
+        else if (JsonPointer.has(src, srcPtr)) {
             return JsonPointer.get(src, srcPtr);
         } else {
             return resolveDefault(defVal, curPointer, globalDefaultResolver);
