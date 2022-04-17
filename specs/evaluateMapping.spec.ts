@@ -126,6 +126,16 @@ describe('different types', function () {
             })
         ).toEqual({prop: null});
     });
+
+    xit('should not evaluate mapping for undefined source fields', function () {
+
+    });
+    xit('by default, should treat null as an empty value - not evaluating the mapping', () => {
+        // { source : null } -> {}
+    });
+    xit('should fallback to default if path does not exist', function () {
+
+    });
 });
 
 describe('defaults', function () {
@@ -136,6 +146,21 @@ describe('defaults', function () {
     interface Source {
         doesNotExist?: string;
     }
+
+    xit(`should source default should take priority over target's default`, () => {
+    });
+
+    xit(`should populate a target field's with its default value even if it's not mapped to`, function () {
+
+    });
+
+    xit(`should populate array item's default value`, function () {
+        // ['asd', null] -> ['asd', 'defaultVal']
+    });
+
+    xit('by default, should treat null as an empty value - hence using the source default value', () => {
+        // { source : null (42) } -> { target: 42 }
+    });
 
     it('should fallback to undefined if default does not exist', async function () {
         expect(
