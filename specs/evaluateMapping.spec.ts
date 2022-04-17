@@ -325,6 +325,37 @@ describe('object nesting', function () {
             }]
         });
     });
+
+    it(`should result with a target object that only consists of its schema's fields`, async function () {
+        interface Target {
+            a: string;
+        }
+        interface Source extends Target {
+            b: number;
+        }
+
+        // not sure if this should be supported:
+        // expect(
+        //     await evaluateMapping<Target, Source>({
+        //         a: 'asd',
+        //         b: 42
+        //     }, '/')
+        // ).toEqual({
+        //     a: 'asd'
+        // });
+
+        expect(
+            await evaluateMapping<Target, Source>({
+                a: 'asd',
+                b: 42
+            }, {
+                a: '/a'
+            })
+        ).toEqual({
+            a: 'asd'
+        });
+
+    });
 });
 
 xdescribe('array entry mapping', function () {
